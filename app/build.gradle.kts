@@ -68,6 +68,7 @@ dependencies {
 
     // OkHttp für HTTP-Requests
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.material)
 
     // Testing
     testImplementation("junit:junit:4.13.2")

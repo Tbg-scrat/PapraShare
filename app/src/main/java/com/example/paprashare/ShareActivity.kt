@@ -45,14 +45,20 @@ class ShareActivity : ComponentActivity() {
             return
         }
 
-        // Hole die geteilte Datei
-        val uri = if (intent.action == Intent.ACTION_SEND) {
-            intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-        } else {
-            null
+        // Hole die geteilte(n) Datei(en)
+        val uris = when (intent.action) {
+            Intent.ACTION_SEND -> {
+                // Einzelne Datei
+                intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { listOf(it) }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                // Mehrere Dateien
+                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+            }
+            else -> null
         }
 
-        if (uri == null) {
+        if (uris.isNullOrEmpty()) {
             Toast.makeText(this, "Keine Datei gefunden", Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -64,7 +70,7 @@ class ShareActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    UploadScreen(uri, serverUrl, apiKey, organizationId)
+                    UploadScreen(uris, serverUrl, apiKey, organizationId)
                 }
             }
         }
@@ -72,7 +78,7 @@ class ShareActivity : ComponentActivity() {
 
     @Composable
     fun UploadScreen(
-        uri: Uri,
+        uris: List<Uri>,
         serverUrl: String,
         apiKey: String,
         organizationId: String
@@ -80,6 +86,8 @@ class ShareActivity : ComponentActivity() {
         var isUploading by remember { mutableStateOf(false) }
         var uploadComplete by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
+        var uploadProgress by remember { mutableStateOf(0) }
+        var totalFiles by remember { mutableStateOf(uris.size) }
 
         // Überprüfe ob die Werte nicht leer sind
         if (serverUrl.isEmpty() || apiKey.isEmpty() || organizationId.isEmpty()) {
@@ -108,7 +116,11 @@ class ShareActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             isUploading = true
             try {
-                uploadFile(uri, serverUrl, apiKey, organizationId)
+                // Lade alle Dateien nacheinander hoch
+                uris.forEachIndexed { index, uri ->
+                    uploadProgress = index
+                    uploadFile(uri, serverUrl, apiKey, organizationId)
+                }
                 uploadComplete = true
                 kotlinx.coroutines.delay(1500)
                 finish()
@@ -172,7 +184,11 @@ class ShareActivity : ComponentActivity() {
         inputStream.close()
 
         // Erstelle den API-Request
-        val client = OkHttpClient()
+        val client = OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -185,6 +201,8 @@ class ShareActivity : ComponentActivity() {
 
         val apiUrl = "${serverUrl.trimEnd('/')}/api/organizations/$organizationId/documents"
 
+        // WICHTIG: Setze KEINEN manuellen Content-Type Header!
+        // OkHttp setzt den automatisch mit der korrekten Boundary
         val request = Request.Builder()
             .url(apiUrl)
             .header("Authorization", "Bearer $apiKey")
@@ -192,11 +210,12 @@ class ShareActivity : ComponentActivity() {
             .build()
 
         val response = client.newCall(request).execute()
+        val responseBody = response.body?.string() ?: ""
 
         tempFile.delete()
 
         if (!response.isSuccessful) {
-            throw Exception("Upload fehlgeschlagen: ${response.code} ${response.message}")
+            throw Exception("Upload fehlgeschlagen: ${response.code} - $responseBody")
         }
     }
 
