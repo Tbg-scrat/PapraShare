@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -49,31 +50,43 @@ class MainActivity : ComponentActivity() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Papra Einstellungen",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineMedium
             )
 
             OutlinedTextField(
                 value = serverUrl,
                 onValueChange = { serverUrl = it },
-                label = { Text("Server URL") },
-                placeholder = { Text("https://papra.example.com") },
+                label = { Text(stringResource(R.string.server_url)) },
+                placeholder = { Text(stringResource(R.string.server_url_placeholder)) },
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = stringResource(R.string.server_url_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             OutlinedTextField(
                 value = apiKey,
                 onValueChange = { apiKey = it },
-                label = { Text("API Key") },
-                placeholder = { Text("ppapi_...") },
+                label = { Text(stringResource(R.string.api_key)) },
+                placeholder = { Text(stringResource(R.string.api_key_placeholder)) },
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = stringResource(R.string.api_key_tip),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
             )
 
             OutlinedTextField(
                 value = organizationId,
                 onValueChange = { organizationId = it },
-                label = { Text("Organization ID") },
-                placeholder = { Text("org_...") },
+                label = { Text(stringResource(R.string.organization_id)) },
+                placeholder = { Text(stringResource(R.string.organization_id_placeholder)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -89,14 +102,14 @@ class MainActivity : ComponentActivity() {
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Einstellungen speichern")
+                Text(stringResource(R.string.save_settings))
             }
 
             if (showSnackbar) {
                 Snackbar(
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    Text("Einstellungen gespeichert!")
+                    Text(stringResource(R.string.settings_saved))
                 }
                 LaunchedEffect(Unit) {
                     kotlinx.coroutines.delay(2000)
@@ -107,7 +120,7 @@ class MainActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Nutze das 'Teilen'-Menü in anderen Apps, um Dateien zu Papra hochzuladen.",
+                text = stringResource(R.string.settings_info),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

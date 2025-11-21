@@ -140,10 +140,15 @@ class ShareActivity : ComponentActivity() {
             ) {
                 if (isUploading && errorMessage == null) {
                     CircularProgressIndicator()
-                    Text("Datei wird zu Papra hochgeladen...")
+                    if (totalFiles > 1) {
+                        Text("Lade Datei ${uploadProgress + 1} von $totalFiles hoch...")
+                    } else {
+                        Text("Datei wird zu Papra hochgeladen...")
+                    }
                 } else if (uploadComplete) {
                     Text(
-                        "✓ Erfolgreich hochgeladen!",
+                        if (totalFiles > 1) "✓ $totalFiles Dateien erfolgreich hochgeladen!"
+                        else "✓ Erfolgreich hochgeladen!",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Papra Share</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Papra Einstellungen</string>
+    <string name="server_url">Server URL</string>
+    <string name="server_url_placeholder">https://papra.example.com</string>
+    <string name="server_url_hint">Vollständige URL mit https:// oder http://</string>
+    <string name="api_key">API Key</string>
+    <string name="api_key_placeholder">ppapi_...</string>
+    <string name="api_key_tip">💡 Tipp: Öffne Papra auf diesem Gerät im Browser und kopiere den Key direkt</string>
+    <string name="organization_id">Organizations-ID</string>
+    <string name="organization_id_placeholder">org_...</string>
+    <string name="save_settings">Einstellungen speichern</string>
+    <string name="settings_saved">Einstellungen gespeichert!</string>
+    <string name="settings_info">Nutze das Teilen-Menü in anderen Apps, um Dateien zu Papra hochzuladen.</string>
+
+    <!-- Upload Screen -->
+    <string name="uploading">Datei wird zu Papra hochgeladen...</string>
+    <string name="uploading_multiple">Lade Datei %1$d von %2$d hoch...</string>
+    <string name="upload_success">✓ Erfolgreich hochgeladen!</string>
+    <string name="upload_success_multiple">✓ %d Dateien erfolgreich hochgeladen!</string>
+    <string name="upload_error_title">Fehler beim Upload:</string>
+    <string name="close">Schließen</string>
+
+    <!-- Errors -->
+    <string name="error_no_file">Keine Datei gefunden</string>
+    <string name="error_configure_first">Bitte konfiguriere zuerst die App-Einstellungen</string>
+    <string name="error_config">Konfigurationsfehler</string>
+    <string name="error_file_open">Datei konnte nicht geöffnet werden</string>
+    <string name="error_upload_failed">Upload fehlgeschlagen: %1$s</string>
+    <string name="error_401">Authentifizierung fehlgeschlagen - prüfe deinen API-Key</string>
+    <string name="error_413">Datei zu groß! Server-Limit: 10 MB</string>
+    <string name="error_404">Server nicht gefunden</string>
+    <string name="error_network">Netzwerkfehler - prüfe deine Verbindung</string>
+    <string name="error_unknown">Unbekannter Fehler</string>
+
+    <!-- Content Descriptions (for accessibility) -->
+    <string name="cd_loading">Lädt</string>
+    <string name="cd_success">Erfolgreich</string>
+    <string name="cd_error">Fehler</string>
+</resources>
