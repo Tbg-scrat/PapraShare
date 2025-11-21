@@ -12,22 +12,29 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.TimeUnit
 
 class ShareActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Prüfe, ob die Einstellungen vorhanden sind
-        val prefs = getSharedPreferences("papra_prefs", MODE_PRIVATE)
+        // Nutze die sichere Methode aus MainActivity (oder hier duplizieren wenn separate Datei)
+        // Falls MainActivity.kt im gleichen Package ist, funktioniert der Aufruf:
+        val prefs = try {
+            getSecurePreferences(this)
+        } catch (e: Exception) {
+            // Fallback falls Encryption fehlschlägt (z.B. Restore Backup)
+            getSharedPreferences("papra_prefs_fallback", MODE_PRIVATE)
+        }
+
         val serverUrl = prefs.getString("server_url", "")
         val apiKey = prefs.getString("api_key", "")
         val organizationId = prefs.getString("organization_id", "")
@@ -38,21 +45,16 @@ class ShareActivity : ComponentActivity() {
                 "Bitte konfiguriere zuerst die Papra-Einstellungen",
                 Toast.LENGTH_LONG
             ).show()
-
-            // Öffne die MainActivity für Einstellungen
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
 
-        // Hole die geteilte(n) Datei(en)
         val uris = when (intent.action) {
             Intent.ACTION_SEND -> {
-                // Einzelne Datei
                 intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { listOf(it) }
             }
             Intent.ACTION_SEND_MULTIPLE -> {
-                // Mehrere Dateien
                 intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
             }
             else -> null
@@ -86,43 +88,18 @@ class ShareActivity : ComponentActivity() {
         var isUploading by remember { mutableStateOf(false) }
         var uploadComplete by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
-        var uploadProgress by remember { mutableStateOf(0) }
-        var totalFiles by remember { mutableStateOf(uris.size) }
-
-        // Überprüfe ob die Werte nicht leer sind
-        if (serverUrl.isEmpty() || apiKey.isEmpty() || organizationId.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        "Konfigurationsfehler",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Text("Bitte konfiguriere die App-Einstellungen")
-                    Button(onClick = { finish() }) {
-                        Text("Schließen")
-                    }
-                }
-            }
-            return
-        }
+        var uploadProgress by remember { mutableIntStateOf(0) }
+        val totalFiles = uris.size
 
         LaunchedEffect(Unit) {
             isUploading = true
             try {
-                // Lade alle Dateien nacheinander hoch
                 uris.forEachIndexed { index, uri ->
                     uploadProgress = index
                     uploadFile(uri, serverUrl, apiKey, organizationId)
                 }
                 uploadComplete = true
-                kotlinx.coroutines.delay(1500)
+                delay(1500)
                 finish()
             } catch (e: Exception) {
                 errorMessage = e.message ?: "Unbekannter Fehler"
@@ -136,25 +113,26 @@ class ShareActivity : ComponentActivity() {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(24.dp)
             ) {
                 if (isUploading && errorMessage == null) {
                     CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(8.dp))
                     if (totalFiles > 1) {
                         Text("Lade Datei ${uploadProgress + 1} von $totalFiles hoch...")
                     } else {
-                        Text("Datei wird zu Papra hochgeladen...")
+                        Text("Datei wird hochgeladen...")
                     }
                 } else if (uploadComplete) {
                     Text(
-                        if (totalFiles > 1) "✓ $totalFiles Dateien erfolgreich hochgeladen!"
-                        else "✓ Erfolgreich hochgeladen!",
+                        if (totalFiles > 1) "✓ $totalFiles Dateien erfolgreich!" else "✓ Upload erfolgreich!",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 } else if (errorMessage != null) {
                     Text(
-                        "Fehler beim Upload:",
+                        "Fehler beim Upload",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -176,51 +154,48 @@ class ShareActivity : ComponentActivity() {
         apiKey: String,
         organizationId: String
     ) = withContext(Dispatchers.IO) {
-        // Kopiere die Datei in einen temporären Speicher
-        val inputStream = contentResolver.openInputStream(uri)
-            ?: throw Exception("Datei konnte nicht geöffnet werden")
-
         val fileName = getFileName(uri)
-        val tempFile = File(cacheDir, fileName)
+        val tempFile = File(cacheDir, "temp_${System.currentTimeMillis()}_$fileName")
 
-        FileOutputStream(tempFile).use { output ->
-            inputStream.copyTo(output)
-        }
-        inputStream.close()
+        try {
+            // Datei kopieren
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(tempFile).use { output ->
+                    inputStream.copyTo(output)
+                }
+            } ?: throw Exception("Konnte Datei nicht lesen")
 
-        // Erstelle den API-Request
-        val client = OkHttpClient.Builder()
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .build()
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "file",
+                    fileName,
+                    tempFile.asRequestBody("application/octet-stream".toMediaTypeOrNull())
+                )
+                .build()
 
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "file",
-                fileName,
-                tempFile.asRequestBody("application/octet-stream".toMediaTypeOrNull())
-            )
-            .build()
+            val apiUrl = "${serverUrl.trimEnd('/')}/api/organizations/$organizationId/documents"
 
-        val apiUrl = "${serverUrl.trimEnd('/')}/api/organizations/$organizationId/documents"
+            val request = Request.Builder()
+                .url(apiUrl)
+                .header("Authorization", "Bearer $apiKey")
+                .post(requestBody)
+                .build()
 
-        // WICHTIG: Setze KEINEN manuellen Content-Type Header!
-        // OkHttp setzt den automatisch mit der korrekten Boundary
-        val request = Request.Builder()
-            .url(apiUrl)
-            .header("Authorization", "Bearer $apiKey")
-            .post(requestBody)
-            .build()
+            // Nutze den Singleton Client
+            val response = NetworkClient.okHttpClient.newCall(request).execute()
 
-        val response = client.newCall(request).execute()
-        val responseBody = response.body?.string() ?: ""
+            if (!response.isSuccessful) {
+                val errorBody = response.body?.string()
+                throw Exception("Upload fehlgeschlagen (${response.code}): $errorBody")
+            }
+            response.body?.close() // Wichtig: Body schließen
 
-        tempFile.delete()
-
-        if (!response.isSuccessful) {
-            throw Exception("Upload fehlgeschlagen: ${response.code} - $responseBody")
+        } finally {
+            // Cleanup: Temporäre Datei IMMER löschen
+            if (tempFile.exists()) {
+                tempFile.delete()
+            }
         }
     }
 
@@ -233,5 +208,16 @@ class ShareActivity : ComponentActivity() {
             }
         }
         return fileName
+    }
+}
+
+// Singleton für Netzwerk-Client (vermeidet Memory Leaks)
+object NetworkClient {
+    val okHttpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
     }
 }

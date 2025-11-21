@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -43,6 +44,7 @@ android {
         compose = true
     }
 
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -54,34 +56,33 @@ dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
 
-    // Jetpack Compose - Bill of Materials (BOM) für konsistente Versionen
-    implementation(platform("androidx.compose:compose-bom:2024.11.00"))
+    // KORRIGIERT: Explizite Version statt "libs...."
+    implementation("androidx.activity:activity-compose:1.9.0")
+    // Optional: Google Material View Components (falls benötigt, meist reicht Compose Material3)
+    implementation("com.google.android.material:material:1.12.0")
+
+    // Jetpack Compose BOM
+    implementation(platform("androidx.compose:compose-bom:2024.05.00")) // Stabile Version
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-
-    // Material Design 3 - vollständiges Set
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material3:material3-window-size-class")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
 
-    // Security - für verschlüsselte SharedPreferences
+    // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // OkHttp für HTTP-Requests
+    // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.11.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.05.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
-    // Debug
+    // Debugging
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
