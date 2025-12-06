@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.delay
+import androidx.compose.ui.Alignment
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +52,10 @@ fun SettingsScreen(context: Context) {
     // Nutze die sicheren Preferences
     val prefs = remember { getSecurePreferences(context) }
 
+    var useHttps by remember {
+        mutableStateOf(prefs.getBoolean("use_https_default", true))
+    }
+
     var serverUrl by remember {
         mutableStateOf(prefs.getString("server_url", "") ?: "")
     }
@@ -81,7 +86,34 @@ fun SettingsScreen(context: Context) {
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
+        // Transparenz-Schalter für Play Store Compliance
 
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (useHttps) "HTTPS (Empfohlen)" else "HTTP (Lokal/Unverschlüsselt)",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Switch(
+                checked = useHttps,
+                onCheckedChange = { useHttps = it }
+            )
+        }
+
+        if (!useHttps) {
+            Text(
+                // Achtung: stringResource(R.string.http_warning) muss in strings.xml existieren
+                text = "⚠️ WARNUNG: HTTP ist unverschlüsselt und sollte nur in gesicherten lokalen Netzwerken verwendet werden.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
+            )
+        }
         Text(
             text = stringResource(R.string.server_url_hint),
             style = MaterialTheme.typography.bodySmall,
@@ -114,10 +146,14 @@ fun SettingsScreen(context: Context) {
 
         Button(
             onClick = {
-                // URL Validierung und Bereinigung
+                // 1. URL Validierung und Bereinigung
                 var cleanUrl = serverUrl.trim()
-                if (cleanUrl.isNotEmpty() && !cleanUrl.startsWith("http")) {
-                    cleanUrl = "https://$cleanUrl"
+                val defaultScheme = if (useHttps) "https" else "http"
+
+                // Korrigierte Prüfung auf Schema (http:// ODER https://)
+                if (cleanUrl.isNotEmpty() && !cleanUrl.startsWith("http://", true) && !cleanUrl.startsWith("https://", true)) {
+                    // Setze das Schema basierend auf dem Schalter
+                    cleanUrl = "$defaultScheme://$cleanUrl"
                 }
                 cleanUrl = cleanUrl.trimEnd('/')
 
@@ -125,6 +161,10 @@ fun SettingsScreen(context: Context) {
                 serverUrl = cleanUrl
 
                 prefs.edit().apply {
+                    // 2. Zustand des Schalters speichern (KRITISCH)
+                    putBoolean("use_https_default", useHttps)
+
+                    // 3. Daten speichern
                     putString("server_url", cleanUrl)
                     putString("api_key", apiKey.trim())
                     putString("organization_id", organizationId.trim())

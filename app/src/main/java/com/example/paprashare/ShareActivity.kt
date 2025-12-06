@@ -26,6 +26,8 @@ class ShareActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        cleanUpOldCacheFiles()
+
         // Nutze die sichere Methode aus MainActivity (oder hier duplizieren wenn separate Datei)
         // Falls MainActivity.kt im gleichen Package ist, funktioniert der Aufruf:
         val prefs = try {
@@ -208,6 +210,34 @@ class ShareActivity : ComponentActivity() {
             }
         }
         return fileName
+    }
+    /**
+     * Sucht beim Start nach temporären Dateien, die von einem abgestürzten Upload übrig geblieben sind,
+     * und löscht diese (Dateien, die mit "temp_" beginnen).
+     */
+    private fun cleanUpOldCacheFiles() {
+        val cacheDir = applicationContext.cacheDir
+
+        // Filtere alle Dateien, deren Name mit "temp_" beginnt
+        val filesToDelete = cacheDir.listFiles { file ->
+            file.name.startsWith("temp_")
+        }
+
+        if (filesToDelete.isNullOrEmpty()) {
+            return
+        }
+
+        // Führe den Cleanup im IO Thread durch, um Blockaden zu vermeiden
+        // Da dies in onCreate aufgerufen wird, sollte der Cleanup sehr schnell sein
+        // und kann ohne explizites Threading erfolgen, da nur Metadaten gelesen werden.
+        filesToDelete.forEach { file ->
+            try {
+                file.delete()
+                // Normalerweise würde hier geloggt: Log.d("Cleanup", "Gelöscht: ${file.name}")
+            } catch (e: Exception) {
+                // Bei Fehlern (z.B. Zugriffsrechte) sollte dies gemeldet werden
+            }
+        }
     }
 }
 
