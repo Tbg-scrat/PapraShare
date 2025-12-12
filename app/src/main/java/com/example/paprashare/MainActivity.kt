@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Hilfsfunktion für sichere Preferences (wird auch in ShareActivity benötigt)
+// Helper function for secure preferences (also required in ShareActivity)
 fun getSecurePreferences(context: Context): SharedPreferences {
     val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -40,7 +40,7 @@ fun getSecurePreferences(context: Context): SharedPreferences {
 
     return EncryptedSharedPreferences.create(
         context,
-        "papra_secure_prefs", // Neuer Name für sichere Datei
+        "papra_secure_prefs", // New name for secure file
         masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
@@ -49,7 +49,7 @@ fun getSecurePreferences(context: Context): SharedPreferences {
 
 @Composable
 fun SettingsScreen(context: Context) {
-    // Nutze die sicheren Preferences
+    // Use the secure preferences
     val prefs = remember { getSecurePreferences(context) }
 
     var useHttps by remember {
@@ -86,7 +86,7 @@ fun SettingsScreen(context: Context) {
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-        // Transparenz-Schalter für Play Store Compliance
+        // Transparency toggle for Play Store Compliance
 
         Row(
             modifier = Modifier
@@ -95,7 +95,8 @@ fun SettingsScreen(context: Context) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (useHttps) "HTTPS (Empfohlen)" else "HTTP (Lokal/Unverschlüsselt)",
+                // UX Element Translation: "HTTPS (Empfohlen)" -> "HTTPS (Recommended)" | "HTTP (Lokal/Unverschlüsselt)" -> "HTTP (Local/Unencrypted)"
+                text = if (useHttps) stringResource(R.string.protocol_https_label) else stringResource(R.string.protocol_http_label),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -107,8 +108,8 @@ fun SettingsScreen(context: Context) {
 
         if (!useHttps) {
             Text(
-                // Achtung: stringResource(R.string.http_warning) muss in strings.xml existieren
-                text = "⚠️ WARNUNG: HTTP ist unverschlüsselt und sollte nur in gesicherten lokalen Netzwerken verwendet werden.",
+                // UX Element Translation: "⚠️ WARNUNG: HTTP ist unverschlüsselt und sollte nur in gesicherten lokalen Netzwerken verwendet werden."
+                text = stringResource(R.string.http_security_warning),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
@@ -146,25 +147,25 @@ fun SettingsScreen(context: Context) {
 
         Button(
             onClick = {
-                // 1. URL Validierung und Bereinigung
+                // 1. URL Validation and cleanup
                 var cleanUrl = serverUrl.trim()
                 val defaultScheme = if (useHttps) "https" else "http"
 
-                // Korrigierte Prüfung auf Schema (http:// ODER https://)
+                // Corrected schema check (http:// OR https://)
                 if (cleanUrl.isNotEmpty() && !cleanUrl.startsWith("http://", true) && !cleanUrl.startsWith("https://", true)) {
-                    // Setze das Schema basierend auf dem Schalter
+                    // Set the scheme based on the toggle
                     cleanUrl = "$defaultScheme://$cleanUrl"
                 }
                 cleanUrl = cleanUrl.trimEnd('/')
 
-                // Aktualisiere State für UI Feedback
+                // Update state for UI Feedback
                 serverUrl = cleanUrl
 
                 prefs.edit().apply {
-                    // 2. Zustand des Schalters speichern (KRITISCH)
+                    // 2. Save toggle state (CRITICAL)
                     putBoolean("use_https_default", useHttps)
 
-                    // 3. Daten speichern
+                    // 3. Save data
                     putString("server_url", cleanUrl)
                     putString("api_key", apiKey.trim())
                     putString("organization_id", organizationId.trim())
@@ -178,7 +179,7 @@ fun SettingsScreen(context: Context) {
         }
 
         if (showSnackbar) {
-            // Hinweis: In einer echten App besser Scaffold/SnackbarHost nutzen
+            // Note: Use Scaffold/SnackbarHost in a real app
             Text(
                 text = stringResource(R.string.settings_saved),
                 color = MaterialTheme.colorScheme.primary,

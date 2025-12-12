@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -54,9 +55,11 @@ class ShareActivity : ComponentActivity() {
 
         val uris = when (intent.action) {
             Intent.ACTION_SEND -> {
+                @Suppress("DEPRECATION")
                 intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { listOf(it) }
             }
             Intent.ACTION_SEND_MULTIPLE -> {
+                @Suppress("DEPRECATION")
                 intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
             }
             else -> null
@@ -122,19 +125,19 @@ class ShareActivity : ComponentActivity() {
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(8.dp))
                     if (totalFiles > 1) {
-                        Text("Lade Datei ${uploadProgress + 1} von $totalFiles hoch...")
+                        Text(stringResource(R.string.upload_progress_multiple, uploadProgress + 1, totalFiles))
                     } else {
-                        Text("Datei wird hochgeladen...")
+                        Text(stringResource(R.string.upload_progress_single))
                     }
                 } else if (uploadComplete) {
                     Text(
-                        if (totalFiles > 1) "✓ $totalFiles Dateien erfolgreich!" else "✓ Upload erfolgreich!",
+                        if (totalFiles > 1) stringResource(R.string.upload_success_multiple, totalFiles) else stringResource(R.string.upload_success_single),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 } else if (errorMessage != null) {
                     Text(
-                        "Fehler beim Upload",
+                        stringResource(R.string.upload_error_title),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -143,7 +146,7 @@ class ShareActivity : ComponentActivity() {
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Button(onClick = { finish() }) {
-                        Text("Schließen")
+                        Text(stringResource(R.string.close_button))
                     }
                 }
             }
@@ -234,7 +237,7 @@ class ShareActivity : ComponentActivity() {
             try {
                 file.delete()
                 // Normalerweise würde hier geloggt: Log.d("Cleanup", "Gelöscht: ${file.name}")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Bei Fehlern (z.B. Zugriffsrechte) sollte dies gemeldet werden
             }
         }

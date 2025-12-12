@@ -9,17 +9,20 @@
     <string name="server_url_placeholder">https://papra.example.com</string>
     <string name="server_url_hint">Complete URL with https:// or http://</string>
     <string name="api_key">API Key</string>
-    <string name="api_key_placeholder">ppapi_...</string>
+    <string name="api_key_placeholder">ppapi_…</string>
     <string name="api_key_tip">💡 Tip: Open Papra in your phone\'s browser and copy the key directly</string>
     <string name="organization_id">Organization ID</string>
-    <string name="organization_id_placeholder">org_...</string>
+    <string name="organization_id_placeholder">org_…</string>
     <string name="save_settings">Save Settings</string>
     <string name="settings_saved">Settings saved!</string>
     <string name="settings_info">Use the share menu in other apps to upload files to Papra.</string>
+    <string name="protocol_https_label">HTTPS (Recommended)</string>
+    <string name="protocol_http_label">HTTP (Local/Unencrypted)</string>
+    <string name="http_security_warning">⚠️ WARNING: HTTP is unencrypted and should only be used on secured local networks.</string>
 
     <!-- Upload Screen -->
-    <string name="uploading">Uploading file to Papra...</string>
-    <string name="uploading_multiple">Uploading file %1$d of %2$d...</string>
+    <string name="uploading">Uploading file to Papra…</string>
+    <string name="uploading_multiple">Uploading file %1$d of %2$d…</string>
     <string name="upload_success">✓ Successfully uploaded!</string>
     <string name="upload_success_multiple">✓ %d files successfully uploaded!</string>
     <string name="upload_error_title">Upload failed:</string>
@@ -41,4 +44,14 @@
     <string name="cd_loading">Loading</string>
     <string name="cd_success">Success</string>
     <string name="cd_error">Error</string>
+
+    <string name="config_prompt_missing">Please configure the Papra settings first.</string>
+    <string name="config_no_file_found">No file found for sharing.</string>
+
+    <string name="upload_progress_single">File is uploading…</string>
+    <string name="upload_progress_multiple">Uploading file %1$d of %2$d…</string>
+
+    <string name="upload_success_single">✓ Upload successful!</string>
+
+    <string name="close_button">Close</string>
 </resources>
