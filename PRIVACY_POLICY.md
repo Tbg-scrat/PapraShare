@@ -12,7 +12,7 @@ The App is built on the principle of data minimality.
 ### 2. Data Transmission
 * **Destination:** All shared content is transmitted directly from your device to the **Server URL** you have provided in the App settings. 
 * **Control:** You have full control over where your data is sent. The App does not send your data to the developers or any third-party servers not specified by you.
-* **Encryption:** Content is transmitted via HTTPS (recommended) or HTTP, depending on your manual configuration in the App settings.
+* **Encryption:** Content is transmitted via HTTPS (strongly recommended for security) or HTTP (only for local/private networks), depending on your configuration. HTTP connections are restricted to private IP ranges for your protection.
 
 ### 3. Local Storage and Security
 * **Configuration Data:** To function, the App stores your Server URL, API Key, and Organization ID. 
@@ -29,4 +29,5 @@ The App **does not** contain:
 Since the App does not store your shared files on its own servers (it only acts as a conduit to your private instance), your data is subject to the privacy settings of your specific Papra server. You can delete the locally stored configuration at any time by clearing the App's cache/data or uninstalling the App.
 
 ### 6. Contact
-If you have questions regarding this Privacy Policy, you can reach out via the official project repository on GitHub.
+If you have questions regarding this Privacy Policy, you can reach out via the official project repository: 
+https://github.com/tbg-scrat/PapraShare
