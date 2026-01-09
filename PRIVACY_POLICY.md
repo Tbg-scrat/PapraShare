@@ -1,8 +1,8 @@
-# Privacy Policy for Papra Share
+# Privacy Policy for PapraShare
 
 **Last Updated: January 2026**
 
-This Privacy Policy describes how the **Papra Share** Android application ("the App") handles your data. The App is designed as a utility to upload user-selected content to a user-configured "Papra" server instance.
+This Privacy Policy describes how the **PapraShare** Android application ("the App") handles your data. The App is designed as a utility to upload user-selected content to a user-configured "Papra" server instance.
 
 ### 1. Data Collection and Processing
 The App is built on the principle of data minimality. 
