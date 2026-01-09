@@ -1,4 +1,4 @@
-package com.example.paprashare
+package com.tbgscrat.paprashare
 
 import android.content.Intent
 import android.net.Uri

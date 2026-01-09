@@ -1,4 +1,4 @@
-package com.example.paprashare
+package com.tbgscrat.paprashare
 
 import android.content.Context
 import android.content.SharedPreferences

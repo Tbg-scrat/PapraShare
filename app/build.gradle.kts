@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.paprashare"
+    namespace = "com.tbgscrat.paprashare"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.paprashare"
+        applicationId = "com.tbgscrat.paprashare"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

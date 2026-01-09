@@ -1,4 +1,4 @@
-package com.example.paprashare.ui.theme
+package com.tbgscrat.paprashare.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
